@@ -1,0 +1,55 @@
+---
+controller_templates:
+  - name: "Patch Linux Produccion"
+    organization: "Torre-Linux"
+    project: "Parcheo Linux"
+    playbook: "lamp_simple/site.yml"
+    inventory: "Linux Produccion"
+    credentials:
+      - "Linux Produccion"
+    description: "Parcheo mensual de servidores Linux de producción"
+    ask_limit_on_launch: true
+    verbosity: 0
+
+  - name: "Patch Linux Pre-Produccion"
+    organization: "Torre-Linux"
+    project: "Parcheo Linux"
+    playbook: "lamp_simple/site.yml"
+    inventory: "Linux Pre-Produccion"
+    credentials:
+      - "Linux Pre-Produccion"
+    description: "Parcheo de servidores Linux de pre-producción"
+    ask_limit_on_launch: true
+    verbosity: 0
+
+  - name: "Hardening CIS Produccion"
+    organization: "Torre-Linux"
+    project: "Hardening RHEL"
+    playbook: "lamp_simple/site.yml"
+    inventory: "Linux Produccion"
+    credentials:
+      - "Linux Produccion"
+    description: "Aplicar baseline CIS a servidores de producción"
+    ask_limit_on_launch: true
+    verbosity: 1
+
+  - name: "Backup Oracle Diario"
+    organization: "Torre-Linux"
+    project: "Backup Oracle"
+    playbook: "lamp_simple/site.yml"
+    inventory: "Linux Produccion"
+    credentials:
+      - "Oracle DB Produccion"
+    description: "Backup diario de bases de datos Oracle"
+    verbosity: 0
+
+  - name: "Compliance RHEL Produccion"
+    organization: "Torre-Linux"
+    project: "Hardening RHEL"
+    playbook: "lamp_simple/site.yml"
+    inventory: "Linux Produccion"
+    credentials:
+      - "Linux Produccion"
+    description: "Verificacion de compliance RHEL contra politica corporativa Acme"
+    ask_limit_on_launch: true
+    verbosity: 0

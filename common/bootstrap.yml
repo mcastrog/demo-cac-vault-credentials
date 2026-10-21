@@ -1,0 +1,161 @@
+---
+bootstrap_cac_repo: "git@github.com:ORGANIZACION/REPOSITORIO-CAC.git"
+
+bootstrap_ee_image: "REGISTRO/ee-cac-dispatch:2.6.1"
+
+controller_credential_types:
+  - name: "CaC - AAP API"
+    kind: cloud
+    description: "Conexión de dispatch a AAP, separada de las claves Ansible Vault"
+    inputs:
+      fields:
+        - id: hostname
+          type: string
+          label: AAP URL
+        - id: username
+          type: string
+          label: Username
+        - id: password
+          type: string
+          label: Password
+          secret: true
+      required:
+        - hostname
+        - username
+        - password
+    injectors:
+      env:
+        CAC_AAP_HOST: !unsafe "{{ hostname }}"
+        CAC_AAP_USERNAME: !unsafe "{{ username }}"
+        CAC_AAP_PASSWORD: !unsafe "{{ password }}"
+
+controller_credentials:
+  - name: "Vault - Master"
+    organization: "Default"
+    credential_type: "Vault"
+    description: "Vault master — descifra common/secrets.yml"
+    inputs:
+      vault_password: "{{ vault_master_password }}"
+      vault_id: "master"
+
+  - name: "Vault - Torre Linux"
+    organization: "Torre-Linux"
+    credential_type: "Vault"
+    description: "Descifra torre-linux/secrets.yml"
+    inputs:
+      vault_password: "{{ vault_linux_vault_password }}"
+      vault_id: "linux"
+
+  - name: "Vault - Torre Windows"
+    organization: "Torre-Windows"
+    credential_type: "Vault"
+    description: "Descifra torre-windows/secrets.yml"
+    inputs:
+      vault_password: "{{ vault_windows_vault_password }}"
+      vault_id: "windows"
+
+  - name: "Vault - Torre Cloud"
+    organization: "Torre-Cloud"
+    credential_type: "Vault"
+    description: "Descifra torre-cloud/secrets.yml"
+    inputs:
+      vault_password: "{{ vault_cloud_vault_password }}"
+      vault_id: "cloud"
+
+  - name: "CaC - AAP API"
+    organization: "Default"
+    credential_type: "CaC - AAP API"
+    description: "Cuenta administrada por plataforma para aplicar CaC sin distribuir Vault master"
+    inputs:
+      hostname: "{{ vault_controller_hostname }}"
+      username: "{{ vault_controller_username }}"
+      password: "{{ vault_controller_password }}"
+
+controller_execution_environments:
+  - name: "EE CaC Dispatch"
+    image: "{{ bootstrap_ee_image }}"
+    pull: missing
+    description: "EE con infra.aap_configuration para CaC con dispatch"
+
+controller_inventories:
+  # Los playbooks del CaC se ejecutan contra localhost: este inventario solo
+  # tiene que existir para que los job templates puedan referenciarlo.
+  - name: "CaC - Localhost"
+    organization: "Default"
+    description: "Inventario de servicio para los job templates del propio CaC"
+
+controller_projects:
+  - name: "CaC - Configuración Completa"
+    organization: "Default"
+    scm_type: git
+    scm_url: "{{ bootstrap_cac_repo }}"
+    scm_branch: main
+    credential: "GitHub - CaC Read Only"
+    scm_update_on_launch: true
+    description: "Repo con toda la configuración de AAP como código"
+    wait: true
+
+controller_templates:
+  - name: "CaC - Common (Orgs y Equipos)"
+    organization: "Default"
+    project: "CaC - Configuración Completa"
+    playbook: "playbooks/site_common.yml"
+    inventory: "CaC - Localhost"
+    execution_environment: "EE CaC Dispatch"
+    credentials:
+      - "Vault - Master"
+
+  - name: "CaC - Torre Linux"
+    organization: "Default"
+    project: "CaC - Configuración Completa"
+    playbook: "playbooks/site_torre.yml"
+    inventory: "CaC - Localhost"
+    execution_environment: "EE CaC Dispatch"
+    extra_vars:
+      torre: "torre-linux"
+    credentials:
+      - "CaC - AAP API"
+      - "Vault - Torre Linux"
+
+  - name: "CaC - Torre Windows"
+    organization: "Default"
+    project: "CaC - Configuración Completa"
+    playbook: "playbooks/site_torre.yml"
+    inventory: "CaC - Localhost"
+    execution_environment: "EE CaC Dispatch"
+    extra_vars:
+      torre: "torre-windows"
+    credentials:
+      - "CaC - AAP API"
+      - "Vault - Torre Windows"
+
+  - name: "CaC - Torre Cloud"
+    organization: "Default"
+    project: "CaC - Configuración Completa"
+    playbook: "playbooks/site_torre.yml"
+    inventory: "CaC - Localhost"
+    execution_environment: "EE CaC Dispatch"
+    extra_vars:
+      torre: "torre-cloud"
+    credentials:
+      - "CaC - AAP API"
+      - "Vault - Torre Cloud"
+
+controller_workflows:
+  - name: "CaC - Despliegue Completo"
+    organization: "Default"
+    description: "Push a git → webhook → common + 3 torres en paralelo"
+    webhook_service: github
+    simplified_workflow_nodes:
+      - identifier: common
+        unified_job_template: "CaC - Common (Orgs y Equipos)"
+        success_nodes:
+          - torre-linux
+          - torre-windows
+          - torre-cloud
+      - identifier: torre-linux
+        unified_job_template: "CaC - Torre Linux"
+      - identifier: torre-windows
+        unified_job_template: "CaC - Torre Windows"
+      - identifier: torre-cloud
+        unified_job_template: "CaC - Torre Cloud"

@@ -1,0 +1,69 @@
+---
+controller_inventories:
+  - name: "Linux Produccion"
+    organization: "Torre-Linux"
+    description: "Servidores Linux de producción"
+  - name: "Linux Pre-Produccion"
+    organization: "Torre-Linux"
+    description: "Servidores Linux de pre-producción"
+
+controller_hosts:
+  # Produccion
+  - name: "web-prod-01.acme.local"
+    inventory: "Linux Produccion"
+    variables:
+      ansible_host: "10.10.1.11"
+  - name: "web-prod-02.acme.local"
+    inventory: "Linux Produccion"
+    variables:
+      ansible_host: "10.10.1.12"
+  - name: "db-prod-01.acme.local"
+    inventory: "Linux Produccion"
+    variables:
+      ansible_host: "10.10.2.11"
+      oracle_sid: "PROD01"
+  - name: "app-prod-01.acme.local"
+    inventory: "Linux Produccion"
+    variables:
+      ansible_host: "10.10.3.11"
+      jboss_home: "/opt/jboss"
+  # Pre-Produccion
+  - name: "web-pre-01.acme.local"
+    inventory: "Linux Pre-Produccion"
+    variables:
+      ansible_host: "10.20.1.11"
+  - name: "db-pre-01.acme.local"
+    inventory: "Linux Pre-Produccion"
+    variables:
+      ansible_host: "10.20.2.11"
+      oracle_sid: "PRE01"
+
+controller_groups:
+  # Produccion
+  - name: "webservers"
+    inventory: "Linux Produccion"
+    description: "Servidores web Apache/Nginx"
+    hosts:
+      - "web-prod-01.acme.local"
+      - "web-prod-02.acme.local"
+  - name: "dbservers"
+    inventory: "Linux Produccion"
+    description: "Servidores de base de datos Oracle/PostgreSQL"
+    hosts:
+      - "db-prod-01.acme.local"
+  - name: "appservers"
+    inventory: "Linux Produccion"
+    description: "Servidores de aplicaciones JBoss/Tomcat"
+    hosts:
+      - "app-prod-01.acme.local"
+  # Pre-Produccion
+  - name: "webservers"
+    inventory: "Linux Pre-Produccion"
+    description: "Servidores web pre-producción"
+    hosts:
+      - "web-pre-01.acme.local"
+  - name: "dbservers"
+    inventory: "Linux Pre-Produccion"
+    description: "Servidores BD pre-producción"
+    hosts:
+      - "db-pre-01.acme.local"
