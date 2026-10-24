@@ -111,5 +111,6 @@ Quien revisa no necesita ninguna clave de Vault.
   fichero es su contraseña.
 - `infra.aap_configuration` es idempotente por nombre y **nunca borra**. Para
   eliminar un objeto hay que marcarlo `state: absent`.
-- `common/secrets.yml` contiene también las claves de las torres y la suya
-  propia, para que el bootstrap pueda recrear las credenciales Vault en AAP.
+- `common/secrets.yml` contiene también las claves de las torres, para que el
+  bootstrap pueda crear sus credenciales Vault en AAP. La master no está en
+  ningún fichero: solo en la credencial `Vault - Master`, creada a mano.

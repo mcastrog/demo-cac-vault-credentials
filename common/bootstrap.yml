@@ -30,14 +30,8 @@ controller_credential_types:
         CAC_AAP_PASSWORD: !unsafe "{{ password }}"
 
 controller_credentials:
-  - name: "Vault - Master"
-    organization: "Default"
-    credential_type: "Vault"
-    description: "Vault master — descifra common/secrets.yml"
-    inputs:
-      vault_password: "{{ vault_master_password }}"
-      vault_id: "master"
-
+  # "Vault - Master" no se declara aquí: se crea a mano antes del bootstrap,
+  # porque es la credencial que abre common/secrets.yml.
   - name: "Vault - Torre Linux"
     organization: "Torre-Linux"
     credential_type: "Vault"
